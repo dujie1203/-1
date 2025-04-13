@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+        }
+
+        .container {
+            height: 100%;
+            background-image: linear-gradient(to right, #fbc2eb, #a6c1ee);
+        }
+
+        .login-wrapper {
+            background-color: #fff;
+            width: 358px;
+            height: 588px;
+            border-radius: 15px;
+            padding: 0 50px;
+            position: relative;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .header {
+            font-size: 38px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 200px;
+        }
+
+        .input-item {
+            display: block;
+            width: 100%;
+            margin-bottom: 20px;
+            border: 0;
+            padding: 10px;
+            border-bottom: 1px solid rgb(128, 125, 125);
+            font-size: 15px;
+            outline: none;
+        }
+
+        .input-item:placeholder {
+            text-transform: uppercase;
+        }
+
+        .btn {
+            text-align: center;
+            padding: 10px;
+            width: 100%;
+            margin-top: 40px;
+            background-image: linear-gradient(to right, #a6c1ee, #fbc2eb);
+            color: #fff;
+        }
+
+        .msg {
+            text-align: center;
+            line-height: 88px;
+        }
+
+        a {
+            text-decoration-line: none;
+            color: #abc1ee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="login-wrapper">
+            <div class="header">Wifi设置</div>
+            <div class="form-wrapper">
+                <select id="scan_ssid" onchange="wifi_ssid_select(this.options[this.selectedIndex].text)">
+                    <!-- SSID options will be added dynamically from JavaScript -->
+                </select>
+                <input id="wifi_name" type="text" name="username" placeholder="Wifi名称" class="input-item">
+                <input id="wifi_password" type="text" name="password" placeholder="WiFi密码" class="input-item">
+                <div style="display: true;">
+                    <input class="form-check-input" type="checkbox" role="switch" id="wifi_switch_check">
+                    <label class="form-check-label" for="wifi_switch_check">是否开机自动连接WIFI</label>
+                </div>
+                <button class="btn" onclick="setWifi()">设置WIFI</button>
+                <div class="msg" id="cdk_msg" style="display:true;">
+                    输入验证码
+                    <input id="cdk" type="text" name="password" placeholder="六位验证码" class="input-item">
+    
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</body>
+<script>
+    function getWifiList() {
+        let select_ssid = document.getElementById('scan_ssid')
+        let list = ''
+        let html = ''
+        let request = new XMLHttpRequest()
+        request.open('GET', '/wifi_scan')
+        //返回格式，json是js对象的存储
+        //request.responseType = 'json'
+        request.send();
+        //请求成功后做啥
+        request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) { //固定写法
+                //数据获取成功，获取服务器响应的数据 
+                list = JSON.parse(request.responseText)['wifi_infos'];
+				if(JSON.parse(request.responseText).cdk_flag == 1)
+					document.getElementById("cdk_msg").style.display = "none";
+                for (let i = 0; i < list.length; i++) {
+                    if (list[i].rssi >= -50) {
+                        list[i].rssi = 3
+                    } else if (list[i].rssi >= -79) {
+                        list[i].rssi = 2
+                    } else {
+                        list[i].rssi = 1
+                    }
+                    var option = document.createElement("option");
+                    option.innerHTML = list[i].ssid;
+                    select_ssid.appendChild(option);
+                }
+                // console.log(list);
+                // listDiv.innerHTML = html;
+            }
+        }
+    }
+    function wifi_ssid_select(text) {
+        let input_ssid = document.getElementById('wifi_name');
+        input_ssid.value = text;
+    }
+    window.onload = getWifiList();
+    function setWifi() {
+        var wifi_name = document.getElementById("wifi_name").value;
+        var wifi_password = document.getElementById("wifi_password").value;
+        let checkbox_flag = document.getElementById('wifi_switch_check').checked;
+            let checkbox_value = 0;
+            if (checkbox_flag == true) {
+                checkbox_value = 1;
+            }
+        var cdk = document.getElementById("cdk").value.toLowerCase();
+        if (wifi_name != "") {
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/wifi_data", true);
+            var data = {
+                "wifi_name": wifi_name,
+                "wifi_code": wifi_password,
+                "decive_code": cdk,
+                "checkbox_value": checkbox_value,
+            }
+            xhttp.send(JSON.stringify(data));
+            console.log(data);
+            alert("提交成功");
+        } else {
+            alert('wifi密码或密钥错误')
+        }
+    }
+</script>
+</html>

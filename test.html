@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SuperDial</title>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+
+    <style>
+        .turnOnFont {
+            font-weight: bolder;
+            color: #F00;
+        }
+
+        .turnOffFont {
+            font-weight: bolder;
+            color: gray;
+        }
+
+        .symbolFont {
+            font-size: 2em;
+            font-weight: lighter;
+        }
+
+        .iconFont {
+            color: #df4848;
+        }
+
+        @media screen and (min-width: 992px) {
+
+            /*PC端*/
+            #historyChartDiv {
+                width: 100%;
+                height: 35em;
+            }
+        }
+
+        @media screen and (min-width: 300px) and (max-width: 767px) {
+
+            /*手机端*/
+            #historyChartDiv {
+                width: 100%;
+                height: 20em;
+            }
+
+            #pills-tab {
+                font-size: 0.75em;
+            }
+
+            #deviceInfo {
+                font-size: 0.9em;
+            }
+
+            #config {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container my-3">
+        <!-- 导航栏 -->
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist" style="background-color: #e3f2fd;">
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link active" id="home-tab" data-bs-toggle="pill" href="#home" role="tab"
+                    aria-controls="home" aria-selected="true">ESP_Sparkbot</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="config-tab" data-bs-toggle="pill" href="#config" role="tab"
+                    aria-controls="config" aria-selected="false">设置</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="car_control-tab" data-bs-toggle="pill" href="#car" role="tab"
+                    aria-controls="car" aria-selected="false">小车控制</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="otaupdate-tab" data-bs-toggle="pill" href="#otaupdate" role="tab"
+                    aria-controls="otaupdate" aria-selected="false">固件升级</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="about-tab" data-bs-toggle="pill" href="#about" role="tab"
+                    aria-controls="about" aria-selected="false">关于</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <div class="shadow p-3">
+                    <div class="col-4">
+                        <button type="button" class="btn btn-warning w-100"
+                            onclick="stream()">摄像头</button>
+                    </div>
+                    <div class="container px-4 text-center">
+                        <h2 class="fw-lighter"><span id="homeTitle">图片上传（推荐240*240px）</span></h2>
+                        <div class="progress active progress-striped" role="progressbar" aria-valuenow="100"
+                            aria-valuemin="0" aria-valuemax="100">
+                            <div id='prg_main'
+                                class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                style="width: 50%">progress: 0%</div>
+                        </div>
+                        <div class="row gx-5">
+                            <div class="col p-1">
+                                <div class="shadow p-3">
+                                    <div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3">
+                                        <img id="image-main_menu" src="" height="240" alt="Image preview...">
+                                    </div>
+                                    <input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg"
+                                        name="main_menu" id="main_menu" onchange="onchangeFile('main_menu')" />
+                                    <input type="button" class="btn btn-primary w-100" onclick="uploadFile('main_menu')"
+                                        value="上传主菜单背景图片" />
+                                    <input type="button" class="btn btn-warning w-100" onclick="deletefile('main_menu')"
+                                        value="删除图片" />
+                                </div>
+                            </div>
+                            <div class="col p-1">
+                                <div class="shadow p-3">
+                                    <div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3">
+                                        <img id="image-sys_hid" src="" height="240" alt="Image preview...">
+                                    </div>
+                                    <input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg"
+                                        name="sys_hid" id="sys_hid" onchange="onchangeFile('sys_hid')" />
+                                    <input type="button" class="btn btn-primary w-100" onclick="uploadFile('sys_hid')"
+                                        value="上传默认HID界面背景图片" />
+                                    <input type="button" class="btn btn-warning w-100" onclick="deletefile('sys_hid')"
+                                        value="删除图片" />
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row gx-5">
+                            <div class="col p-1">
+                                <div class="shadow p-3">
+                                    <div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3">
+                                        <img id="image-customer_hid" src="" height="240" alt="Image preview...">
+                                    </div>
+                                    <input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg"
+                                        name="customer_hid" id="customer_hid" onchange="onchangeFile('customer_hid')" />
+                                    <input type="button" class="btn btn-primary w-100"
+                                        onclick="uploadFile('customer_hid')" value="上传自定义HID界面背景图片" />
+                                    <input type="button" class="btn btn-warning w-100"
+                                        onclick="deletefile('customer_hid')" value="删除图片" />
+
+                                </div>
+                            </div>
+                            <div class="col p-1">
+                                <div class="shadow p-3">
+                                    <div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3">
+                                        <img id="image-pointer" src="" height="240" alt="Image preview...">
+                                    </div>
+                                    <input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg"
+                                        name="pointer" id="pointer" onchange="onchangeFile('pointer')" />
+                                    <input type="button" class="btn btn-primary w-100" onclick="uploadFile('pointer')"
+                                        value="上传系统指针图片(推荐48*48px)" />
+                                    <input type="button" class="btn btn-warning w-100" onclick="deletefile('pointer')"
+                                        value="删除图片" />
+                                </div>
+                            </div>
+                            <div class="col p-1">
+                                <div class="shadow p-3">
+                                    <div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3">
+                                        <img id="image-pointer_csm" src="" height="240" alt="Image preview...">
+                                    </div>
+                                    <input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg"
+                                        name="pointer_csm" id="pointer_csm" onchange="onchangeFile('pointer_csm')" />
+                                    <input type="button" class="btn btn-primary w-100"
+                                        onclick="uploadFile('pointer_csm')" value="上传自定义指针图片(推荐48*48px)" />
+                                    <input type="button" class="btn btn-warning w-100"
+                                        onclick="deletefile('pointer_csm')" value="删除图片" />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="config" role="tabpanel" aria-labelledby="config-tab">
+                <div class="row ms-3">
+                    <div class="shadow p-4 m-3 col-xs-12 col-sm-5 ">
+                        <h2 class="fw-lighter">网络配置</h2>
+                        <hr>
+                        <div>
+                            <div class="row mb-2">
+                                <label for="scan_ssid" class="col-12 col-form-label fw-bold">扫描热点</label>
+                                <div class="col-8 ">
+                                    <select id="scan_ssid"
+                                        onchange="wifi_ssid_select(this.options[this.selectedIndex].text)">
+                                        <!-- SSID options will be added dynamically from JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-warning w-100"
+                                        onclick="wifi_scan()">扫描</button>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="sta_ssid" class="col-12 col-form-label fw-bold">连接热点_名称</label>
+                                <div class="col-8 ">
+                                    <input type="text" class="form-control col-8" id="sta_ssid">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="sta_passwd" class="col-12 col-form-label fw-bold">连接热点_密码</label>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="sta_passwd" placeholder="修改密码">
+                                </div>
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-warning w-100"
+                                        onclick="wifi_data()">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch" style="display: none;">
+                            <input class="form-check-input" type="checkbox" role="switch" id="wifi_switch_check">
+                            <label class="form-check-label" for="wifi_switch_check">是否开机自动连接WIFI</label>
+                        </div>
+                    </div>
+                    <div class="shadow p-4 m-3 col-xs-12 col-sm-5 ">
+                        <h2 class="fw-lighter">MQTT配置</h2>
+                        <hr>
+                        <div class="row mb-2">
+                            <label class="col-12 col-form-label fw-bold">MQTT服务器地址</label>
+                            <div class="col-auto">
+                                <select class="form-select form-select-md " id="mqtt_host_type">
+                                    <option value="0">mqtt://</option>
+                                    <option value="1">mqtts://</option>
+                                    <option value="2">ws://</option>
+                                    <option value="3">wss://</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <input type="text" class="form-control col-8" id="mqtt_host" placeholder=" ">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label class="col-12 col-form-label fw-bold">端口</label>
+                            <div class="col-8">
+                                <input type="text" class="form-control col-8" id="mqtt_port" value="1883">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label class="col-12 col-form-label fw-bold">用户名</label>
+                            <div class="col-8">
+                                <input type="text" class="form-control col-8" id="mqtt_user" placeholder="">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <label class="col-12 col-form-label fw-bold">密码</label>
+                            <div class="col-8">
+                                <input type="text" class="form-control col-8" id="mqtt_passwd" placeholder="">
+                            </div>
+                            <div class="col-4">
+                                <button type="button" class="btn btn-warning w-100" onclick="mqtt_data()">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="about" role="tabpanel" aria-labelledby="about-tab">
+                <div class="shadow p-4 mb-3">
+                    <h2>注意 Attention</h2>
+                    <p class="fw-lighter">
+                        运行过程中遇到的bug请及时反馈给我们，我们会及时修复。<br>或者您也可以在加入交流QQ群，群号在gitee链接中的README末尾</p>
+                    <h2>项目地址:</h2>
+                    <p class="fw-lighter"><a href="https://gitee.com/coll45/super-dial-motor-knob-screen"
+                            target="_blank">https://gitee.com/coll45/super-dial-motor-knob-screen</a></p>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="otaupdate" role="tabpanel" aria-labelledby="otaupdate-tab">
+                <div class="shadow p-4 m-3 ">
+                    <h2 class="fw-lighter">更新完成会自动重启，升级期间请勿断电</h2>
+                    <hr>
+                    <div class="mb-3">
+                        <form id="form1" enctype="multipart/form-data" method="post" action="/update">
+                            <fieldset>
+                                <div class="row mb-3">
+                                    <label class="col-12 col-form-label fw-bold">选择固件文件</label>
+                                    <div class="col-8">
+                                        <input type="file" class="btn btn-warning w-100" name="update" accept=".bin"
+                                            id="update" />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4">
+                                        <input type='button' class="btn btn-primary w-100" onclick="uploadbin()"
+                                            value='Update'>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label class="col-12 col-form-label fw-bold">更新进度</label>
+                                    <div class="col-8">
+                                        <div class="progress active progress-striped" role="progressbar"
+                                            aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                            <div id='prg'
+                                                class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                                style="width: 50%">progress: 0%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4">
+                                        <div id='result'></div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="custom-mqtt" role="tabpanel" aria-labelledby="custom-mqtt-tab">
+                <div class="shadow p-3">
+                    <div class="container px-4 text-center">
+                        <h2 class="fw-lighter"><span>自定义MQTT消息</span></h2>
+                        <hr>
+                        <div class="btn-toolbar justify-content-between " role="toolbar"
+                            aria-label="Toolbar with button groups">
+                            <div class="btn-group btn-group-lg" role="group" aria-label="First group">
+                                <button type="button" class="btn btn-primary" onclick="mqtt_add()">添加新的MQTT消息</button>
+                            </div>
+                            <div class="input-group btn-group-lg">
+                                <button type="button" class="btn btn-danger" onclick="mqtt_delete()">&emsp;删除&emsp;
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="mqtt_update()">
+                                    &emsp;提交&emsp; </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="mqtt-div"></div>
+            </div>
+
+            <div class="tab-pane fade" id="custom-hid" role="tabpanel" aria-labelledby="custom-hid-tab">
+                <div class="shadow p-3">
+                    <div class="container px-4 text-center">
+                        <h2 class="fw-lighter"><span id="HIDtitle">自定义HID</span></h2>
+                        <hr>
+                        <div class="btn-toolbar justify-content-between " role="toolbar"
+                            aria-label="Toolbar with button groups">
+                            <div class="btn-group btn-group-lg" role="group" aria-label="First group">
+                                <button type="button" class="btn btn-primary" onclick="hid_add(1)">Surface Dial</button>
+                                <button type="button" class="btn btn-info" onclick="hid_add(2)">鼠标</button>
+                                <button type="button" class="btn btn-warning" onclick="hid_add(3)">键盘</button>
+                                <button type="button" class="btn btn-secondary" onclick="hid_add(4)">多媒体功能</button>
+                            </div>
+
+                            <div class="input-group btn-group-lg">
+                                <button type="button" class="btn btn-danger" onclick="hid_delete()">&emsp;删除&emsp;
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="hid_update()">
+                                    &emsp;提交&emsp; </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="hid-div"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function uploadbin() {
+        let progress = document.getElementById('prg');
+        var fd = new FormData();
+        fd.append("update", document.getElementById("update").files[0]);
+        document.getElementById("form1").disabled = true;
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", function (e) {
+            let percentage = e.loaded / e.total * 100
+            progress.style.width = `${percentage}%`
+            progress.innerHTML = "progress: " + `${percentage.toFixed(2)}%`
+        })
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log(xhr.responseText);
+                alert("即将重启,请耐心等待...");
+            }
+        }
+        xhr.open("POST", "/update");
+        xhr.send(fd);
+    }
+    function onchangeFile(params) {
+        var image = "image-" + params;
+        let preview = document.getElementById(image);
+        let fileInput = document.getElementById(params);
+        let progress = document.getElementById('prg_main');
+        progress.style.width = `0%`
+        progress.innerHTML = "progress: " + `0%`
+        // 清除背景图片:
+        preview.style.backgroundImage = '';
+        if (!fileInput.value) {
+            return;
+        }
+        let file = fileInput.files[0];
+        let size = file.size;
+        if (size >= 200 * 1024) {
+            alert('文件大小超出限制,最大不能超过200KB\nFile size must be less than 200KB!');
+            return false;
+        }
+        // 获取File信息:
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('不是有效的图片文件!');
+            return;
+        }
+        // 读取文件:
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            let data = e.target.result;
+            console.log(preview, 'a标签')
+            preview.src = data
+        };
+        // 以DataURL的形式读取文件:
+        reader.readAsDataURL(file);
+    }
+    function uploadFile(params) {
+        // var fd = new FormData();
+        let progress = document.getElementById('prg_main');
+        var upload_path = "/upload/" + params;
+        var file = document.getElementById(params).files[0];
+        if (file == null) {
+            alert('请选择图片文件!');
+            return false;
+        }
+        // var fileInput = document.getElementById(params).files;
+
+        // 获取File信息:
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('不是有效的图片文件!');
+            return false;
+        }
+        if (['image/jpeg'].includes(file.type)) {
+            // fd.append(params, file);
+            upload_path = upload_path + ".jpg";
+        }
+        else {
+            // fd.append(params, file);
+            upload_path = upload_path + ".png";
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", function (e) {
+            let percentage = e.loaded / e.total * 100
+            progress.style.width = `${percentage}%`
+            progress.innerHTML = "progress: " + `${percentage.toFixed(2)}%`
+            if (percentage > 99) {
+                commonUtil.message("成功");
+            }
+        })
+        xhr.open("POST", upload_path, true);
+        xhr.send(file);
+        return true;
+    }
+    function deletefile(params) {
+        var xhr = new XMLHttpRequest();
+        var delete_path = "/delete/" + params;
+        xhr.open("POST", delete_path);
+        xhr.send();
+        commonUtil.message("成功");
+    }
+    function range_change(params) {
+        let value = document.getElementById(params).value;
+        let value_span = document.getElementById(params + "-value");
+        value_span.value = value;
+    }
+    function image_tab(num, id) {
+        let str = '<div class="col p-3 text-center ">' +
+            '<div class="row"><h5 class="col-auto">模式：</h5>';
+        if (num == 1)
+            str += '<h5 class="col-auto bg-primary border border-secondary-subtle rounded-3">Surface Dial</h5>';
+        if (num == 2)
+            str += '<h5 class="col-auto bg-info border border-secondary-subtle rounded-3">鼠标</h5>';
+        if (num == 3)
+            str += '<h5 class="col-auto bg-warning border border-secondary-subtle rounded-3">键盘</h5>';
+        if (num == 4)
+            str += '<h5 class="col-auto bg-secondary border border-secondary-subtle rounded-3">多媒体功能</h5>';
+        if (num == 5)
+            str += '<h5 class="col-auto bg-primary border border-secondary-subtle rounded-3">MQTT</h5>';    
+            
+        str += '<h6 class="col-auto">' + id + '</h6></div>' +
+            '<div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3 text-center">' +
+            '<img id="image-i' + id + '" src="" height="48" alt="推荐48*48px">' +
+            '</div>' +
+            '<input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg" name="i' + id + '" id="i' + id + '" onchange="onchangeFile(\'i' + id + '\')">' +
+            '<div class="row justify-content-md-center"><input class="col  text-center" id="name-' + id + '" type="text" class="form-control" placeholder="图标名称 ">';
+        if( num != 5)
+            str += '<input class="col text-center" id="info-' + id + '" type="text" class="form-control" placeholder="Info ">';
+        str += '</div>';
+        if(num == 5)
+            str += '<div class="row justify-content-md-center"><input class="col  text-center" id="topic-' + id + '" type="text" class="form-control" placeholder="Topic "></div>'    
+        str += '</div>';
+        return str;
+    }
+    var key_map = [
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H',
+        'I',
+        'J',
+        'K',
+        'L',
+        'M',
+        'N',
+        'O',
+        'P',
+        'Q',
+        'R',
+        'S',
+        'T',
+        'U',
+        'V',
+        'W',
+        'X',
+        'Y',
+        'Z',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        '0',
+        'Enter',
+        'Esc',
+        'Backspace',
+        'Tab',
+        '空格',
+        '-',
+        '=',
+        '[',
+        ']',
+        '\\',
+        '无',
+        ';',
+        "'",
+        '~',
+        ',',
+        '.',
+        '/',
+        'Capes Lock',
+        'F1',
+        'F2',
+        'F3',
+        'F4',
+        'F5',
+        'F6',
+        'F7',
+        'F8',
+        'F9',
+        'F10',
+        'F11',
+        'F12',
+        'Insert', //66
+        'Home',
+        'Page Up',
+        '删除',
+        'End',
+        'Page Down',
+        '右移',
+        '左移',
+        '下移',
+        '上移',
+    ]
+    var function_key_map = [
+        '无',
+        'Alt',
+        'Ctrl',
+        'Shift',
+        'Alt+Shift',
+        'Ctrl+Shift',
+        'Ctrl+Alt',
+        'Ctrl+Alt+Shift',
+        'Win/Command',
+        'Win+Shift',
+        'Win+Alt',
+        'Win+Ctrl',
+    ]
+    var function_mouse_map = [
+        'X移动',
+        'Y移动',
+        '滚轮上下',
+        '滚轮左右',
+    ]
+    var function_media_map = [
+        '播放/暂停',
+        '下一首',
+        '上一首',
+        '暂停',
+        '音量',
+        '静音',
+        '音量+',
+        '音量-',
+    ]
+    function media_select(info, id, name) {
+        str = '<div class="row p-1"><div class="col-12"><h6>' + name + '功能</h6><div class="row">';
+        str += '<select class="col form-select" id="' + info + '-l' + id + '" aria-label="Default select example">';
+        for (let i = 0; i < function_media_map.length; i++) {
+            str += '<option value="' + i + '">' + function_media_map[i] + '</option>';
+        }
+        str += '</select>';
+        str += '<div id="' + info + '-r' + id + '"></div>'
+        str += '</div></div></div>';
+        return str;
+    }
+    function key_select(info, id, name) {
+        str = '<div class="row p-1"><div class="col-12"><h6>' + name + '功能</h6><div class="row">';
+        str += '<select class="col form-select" id="' + info + '-l' + id + '" aria-label="Default select example">';
+        for (let i = 0; i < function_key_map.length; i++) {
+            str += '<option value="' + i + '">' + function_key_map[i] + '</option>';
+        }
+        str += '</select>';
+        str += '<div class="col col-auto container text-center"> + </div>';
+        str += '<select class="col form-select" id="' + info + '-r' + id + '" aria-label="Default select example">';
+        for (let i = 0; i < key_map.length; i++) {
+            str += '<option value="' + i + '">' + key_map[i] + '</option>';
+        }
+        str += '</select>';
+        str += '</div></div></div>';
+        return str;
+    }
+    function mouse_select(info, id, name) {
+        str = '<div class="row p-1"><div class="col-12"><h6>' + name + '功能</h6><div class="row">';
+        str += '<select class="col form-select" id="' + info + '-l' + id + '" aria-label="Default select example">';
+        for (let i = 0; i < function_mouse_map.length; i++) {
+            str += '<option value="' + i + '">' + function_mouse_map[i] + '</option>';
+        }
+        str += '</select>';
+        str += '<div class="col col-auto container text-center"> + </div>';
+        str += '<input class="col" type="text" id="' + info + '-r' + id + '" class="form-control" placeholder="整数">';
+        str += '</div></div></div>';
+        return str;
+    }
+    function dial_select(info, id, name) {
+        str = "<div>";
+        str += '<div id="' + info + '-l' + id + '"></div>';
+        str += '<div id="' + info + '-r' + id + '"></div>';
+        str += '</div>';
+        return str;
+    }
+    function mqtt_select(info, id, name) {
+        str = '<div class="row p-1"><div class="col-12"><h6>' + name + '功能</h6><div class="row">';
+        str +='    <input id="' + info + '-' + id + '" type="text" list="typelist" placeholder="MQTT消息">'+
+            '<datalist id="typelist">'+
+            '　　<option>当前电机位置</option>'+
+            '</datalist>';
+            str += '</div></div></div>';      
+        // str += '<select class="col form-select" id="' + info + '-l' + id + '" aria-label="Default select example">';
+        // for (let i = 0; i < function_media_map.length; i++) {
+        //     str += '<option value="' + i + '">' + function_media_map[i] + '</option>';
+        // }
+        // str += '</select>';
+        // str += '<div id="' + info + '-r' + id + '"></div>'
+        // str += '</div></div></div>';
+        return str;
+    }
+    function shortcut_tab(num, id) {
+        if (num == 1) {
+            let str = '<div style="display:none">';
+            str += dial_select("left", id, "左旋");
+            str += dial_select("right", id, "右旋");
+            str += dial_select("middle", id, "单击");
+            str += '</div>';
+            return str;
+        }
+        let str = '<div class="col bg-secondary-subtle border-end border-2">';
+        if (num == 3) {
+            str += key_select("left", id, "左旋");
+            str += key_select("right", id, "右旋");
+            str += key_select("middle", id, "单击");
+        }
+        if (num == 2) {
+            str += mouse_select("left", id, "左旋");
+            str += mouse_select("right", id, "右旋");
+            str += '<div class="row p-1"><div class="col-12"><h6>单击功能</h6><div class="row">';
+            str += '<select class="col form-select" id="middle-l' + id + '" aria-label="Default select example">';
+            str += '<option value="0">左键</option>';
+            str += '<option value="1">右键</option>';
+            str += '<option value="2">中键</option>';
+            str += '</select>';
+            str += '<div id="middle-r' + id + '"></div>'
+            str += '</div></div></div>';
+
+        }
+        if (num == 4) {
+            str += media_select("left", id, "左旋");
+            str += media_select("right", id, "右旋");
+            str += media_select("middle", id, "单击");
+        }
+        if (num == 5) {
+            str += mqtt_select("left", id, "左旋");
+            str += mqtt_select("right", id, "右旋");
+            str += mqtt_select("middle", id, "单击");
+        }
+        str += '</div>';
+        return str;
+    }
+    function knob_param_tab(params, id) {
+        let str = '<div class="col bg-light-subtle border-end border-2">';
+        str += '<div class="row p-4"><label class="col">总位置数量:</label><input class="col" type="text" id="total-position-' + id + '"  class="form-control" value="0"></div>';
+        str += '<div class="row p-4"><label class="col">当前电机位置:</label><input class="col" type="text" id="current-position-' + id + '"  class="form-control" value="0"></div>';
+        str += '<div class="row p-4"><label class="col">位置切换点:</label><input class="col" type="text" id="switch-position-' + id + '"  class="form-control" value="1.1"></div>';
+        str += '</div>';
+        str += '<div class="col  p-3">';  // <span id="angle-' + id + '-value">1
+        str += '<div class="row p-1"><div class="d-flex justify-content-between">';
+        str += '<h5>每步角度</H5>';
+        str += '<div class="col-5">';
+        str += '<H5>值:<input class="col-6" type="text" id="angle-' + id + '-value" value="1" onchange="input_change(\'angle-' + id + '\')"></H5>';
+        str += '</div>';
+        str += '</div>';
+        str += '<input type="range" class="form-range" min="0.1" max="50" step="0.5" id="angle-' + id + '" value="1" onchange="range_change(\'angle-' + id + '\')"></div>';
+        str += '<div class="row p-1"><div class="d-flex justify-content-between"><h5>力反馈强度</H5><div class="col-5"><H5>值: <input class="col-6" type="text" id="detent-' + id + '-value" value="1" onchange="input_change(\'detent-' + id + '\')"></H5></div></div><input type="range" class="form-range" min="0" max="3" step="0.1" id="detent-' + id + '" value="1" onchange="range_change(\'detent-' + id + '\')"></div>';
+        str += '<div class="row p-1"><div class="d-flex justify-content-between"><h5>撞墙力度</H5><div class="col-5"><H5>值:<input class="col-6" type="text" id="endstop-' + id + '-value" value= "1" onchange="input_change(\'endstop-' + id + '\')"></H5></div></div><input type="range" class="form-range" min="0" max="3" step="0.1" id="endstop-' + id + '" value="1" onchange="range_change(\'endstop-' + id + '\')"></div>';
+        str += '<div class="row d-flex justify-content-center text-center">';
+        str += '<button type="button" class="btn btn-outline-success" onclick="dial_test(' + id + ')">测试力反馈</button>';
+        str += '</div>';
+        str += '</div>';
+        return str;
+    }
+    function hid_add(params) {
+        let hid_div = document.getElementById("hid-div");
+        let cnt = hid_div.children.length;
+        if (cnt >= 9) {
+            alert("最多只能添加9个自定义HID");
+            return;
+        }
+        let img_str = image_tab(params, cnt);
+        let shortcut_str = shortcut_tab(params, cnt);
+        let knob_str = knob_param_tab(params, cnt);
+        var newdiv = document.createElement("div");
+        let str;
+        str = '<input type="hidden" id="type-' + cnt + '" value="' + params + '">';
+        if (params == 1) {
+            str += '<div class="shadow p-3"><div class="row row-cols-1 row-cols-lg-3 g-1 g-lg-3">' + img_str + shortcut_str + knob_str + '</div></div>';
+        }
+        else if (params == 2) {
+            str += '<div class="shadow p-3"><div class="row row-cols-1 row-cols-lg-4 g-1 g-lg-3">' + img_str + shortcut_str + knob_str + '</div></div>';
+        }
+        else if (params == 3) {
+            str += '<div class="shadow p-3"><div class="row row-cols-1 row-cols-lg-4 g-1 g-lg-3">' + img_str + shortcut_str + knob_str + '</div></div>';
+        }
+        else if (params == 4) {
+            str += '<div class="shadow p-3"><div class="row row-cols-1 row-cols-lg-4 g-1 g-lg-3">' + img_str + shortcut_str + knob_str + '</div></div>';
+        }
+        newdiv.innerHTML = str;
+        hid_div.appendChild(newdiv);
+    }
+    function hid_delete() {
+        let hid_div = document.getElementById("hid-div");
+        hid_div.removeChild(hid_div.lastChild);
+    }
+    function mqtt_add() {
+        let mqtt_div = document.getElementById("mqtt-div");
+        let cnt = mqtt_div.children.length;
+        if (cnt >= 9) {
+            alert("最多只能添加9个MQTT");
+            return;
+        }
+        let params = 5;
+        cnt = "mqtt" + cnt;
+        let img_str = image_tab(params, cnt);
+        let shortcut_str = shortcut_tab(params, cnt);
+        let knob_str = knob_param_tab(params, cnt);
+        var newdiv = document.createElement("div");
+        let str = '<div></div>';
+        str += '<div class="shadow p-3"><div class="row row-cols-1 row-cols-lg-4 g-1 g-lg-3">' + img_str + shortcut_str + knob_str + '</div></div>';
+        newdiv.innerHTML = str;
+        mqtt_div.appendChild(newdiv);
+    }
+    function mqtt_delete() {
+        let mqtt_div = document.getElementById("mqtt-div");
+        mqtt_div.removeChild(mqtt_div.lastChild);
+    }
+    function mqtt_update() {
+        let mqtt_div = document.getElementById("mqtt-div");
+        let cnt = mqtt_div.children.length;
+        if (cnt == 0) {
+            alert("请先添加MQTT");
+            return;
+        }
+        var data = new Array(cnt);
+        for (let i = 0; i < cnt; i++) {
+            let id = "mqtt" + i;
+            let img_src = 'i' + id;
+            let name_id = "name-" + id;
+            let topic_id = "topic-" + id;
+            let total_position_id = "total-position-" + id;
+            let current_position_id = "current-position-" + id;
+            let switch_position_id = "switch-position-" + id;
+            let angle_id = "angle-" + id;
+            let detent_id = "detent-" + id;
+            let endstop_id = "endstop-" + id;
+            let left_id = "left-" + id;
+            let right_id = "right-" + id;
+            let middle_id = "middle-" + id;
+            let name_value = document.getElementById(name_id).value;
+            let topic_value = document.getElementById(topic_id).value;
+            let total_position_value = document.getElementById(total_position_id).value;
+            let current_position_value = document.getElementById(current_position_id).value;
+            let switch_position_value = document.getElementById(switch_position_id).value;
+            let angle_value = document.getElementById(angle_id).value;
+            let detent_value = document.getElementById(detent_id).value;
+            let endstop_value = document.getElementById(endstop_id).value;
+            let left_value = document.getElementById(left_id).value;
+            let right_value = document.getElementById(right_id).value;
+            let middle_value = document.getElementById(middle_id).value;
+            let left_flag = '0';
+            let right_flag = '0';
+            let middle_flag = '0';
+            if(left_value == "当前电机位置")                
+                left_flag = '1';
+            if(right_value == "当前电机位置")                
+                right_flag = '1';
+            if(middle_value == "当前电机位置")                
+                middle_flag = '1';
+            data[i] = {
+                "id": id,
+                "img_src": img_src,
+                "name": name_value,
+                "topic": topic_value,
+                "total_position": total_position_value,
+                "current_position": current_position_value,
+                "switch_position": switch_position_value,
+                "angle": angle_value,
+                "detent": detent_value,
+                "endstop": endstop_value,
+                "left": left_value,
+                "right": right_value,
+                "middle": middle_value,
+                "left_flag": left_flag,
+                "right_flag": right_flag,
+                "middle_flag": middle_flag,
+            }
+            if (uploadFile(img_src) == false)
+                return;
+        }
+        console.log(data);
+        var xhr = new XMLHttpRequest();
+        var update_path = "/upload/mqtt";
+        xhr.open("POST", update_path, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(data));
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log(xhr.responseText);
+                alert("自定义MQTT上传成功，重启后生效");
+            }
+        }
+    }
+    function empty(e) {
+        switch (e) {
+            case "":
+            case 0:
+            case "0":
+            case null:
+            case undefined:
+                return "0";
+            default:
+                return e;
+        }
+    }
+
+    function hid_update() {
+        let hid_div = document.getElementById("hid-div");
+        let cnt = hid_div.children.length;
+        if (cnt == 0) {
+            alert("请先添加HID");
+            return;
+        }
+        var data = new Array(cnt);
+        for (let i = 0; i < cnt; i++) {
+            let id = String(i);
+            let type_id = "type-" + i;
+            let info_id = "info-" + i;
+            let img_src = 'i' + i;
+            let name_id = "name-" + i;
+            let angle_id = "angle-" + i;
+            let detent_id = "detent-" + i;
+            let endstop_id = "endstop-" + i;
+            let left_l = "left-l" + i;
+            let left_r = "left-r" + i;
+            let right_l = "right-l" + i;
+            let right_r = "right-r" + i;
+            let middle_l = "middle-l" + i;
+            let middle_r = "middle-r" + i;
+            let total_position_id = "total-position-" + i;
+            let current_position_id = "current-position-" + i;
+            let switch_position_id = "switch-position-" + i;
+            let info_value = document.getElementById(info_id).value;
+            let type_value = document.getElementById(type_id).value;
+            let name_value = document.getElementById(name_id).value;
+            let angle_value = document.getElementById(angle_id).value;
+            let detent_value = document.getElementById(detent_id).value;
+            let endstop_value = document.getElementById(endstop_id).value;
+            let left_l_value = document.getElementById(left_l).value;
+            let left_r_value = document.getElementById(left_r).value;
+            let right_l_value = document.getElementById(right_l).value;
+            let right_r_value = document.getElementById(right_r).value;
+            let middle_l_value = document.getElementById(middle_l).value;
+            let middle_r_value = document.getElementById(middle_r).value;
+            let total_position_value = document.getElementById(total_position_id).value;
+            let current_position_value = document.getElementById(current_position_id).value;
+            let switch_position_value = document.getElementById(switch_position_id).value;
+            left_l_value = empty(left_l_value);
+            left_r_value = empty(left_r_value);
+            right_l_value = empty(right_l_value);
+            right_r_value = empty(right_r_value);
+            middle_l_value = empty(middle_l_value);
+            middle_r_value = empty(middle_r_value);
+            data[i] = {
+                "id": id,
+                "info": info_value,
+                "type": type_value,
+                "img_src": img_src,
+                "name": name_value,
+                "angle": angle_value,
+                "detent": detent_value,
+                "endstop": endstop_value,
+                "left_l": left_l_value,
+                "left_r": left_r_value,
+                "right_l": right_l_value,
+                "right_r": right_r_value,
+                "middle_l": middle_l_value,
+                "middle_r": middle_r_value,
+                "total_position": total_position_value,
+                "current_position": current_position_value,
+                "switch_position": switch_position_value,
+            }
+            if (uploadFile(img_src) == false)
+                return;
+        }
+
+        console.log(data);
+        var xhr = new XMLHttpRequest();
+        var update_path = "/upload/hid";
+        xhr.open("POST", update_path, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(data));
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log(xhr.responseText);
+                alert("自定义HID上传成功，重启后生效");
+            }
+        }
+    }
+    function dial_test(id) {
+        let angle_value = document.getElementById("angle-" + id).value;
+        let detent_value = document.getElementById("detent-" + id).value;
+        let endstop_value = document.getElementById("endstop-" + id).value;
+        let total_position_value = document.getElementById("total-position-" + id).value;
+        let current_position_value = document.getElementById("current-position-" + id).value;
+        let switch_position_value = document.getElementById("switch-position-" + id).value;
+        let data = {
+            "angle": angle_value,
+            "detent": detent_value,
+            "endstop": endstop_value,
+            "total_position": total_position_value,
+            "current_position": current_position_value,
+            "switch_position": switch_position_value,
+        }
+        console.log(data);
+        var xhr = new XMLHttpRequest();
+        var test_path = "/dial_test";
+        xhr.open("POST", test_path, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(data));
+    }
+    function wifi_scan() {
+        let select_ssid = document.getElementById('scan_ssid')
+        let list = ''
+        let html = ''
+        let request = new XMLHttpRequest()
+        request.open('GET', '/wifi_scan')
+        //返回格式，json是js对象的存储
+        //request.responseType = 'json'
+        request.send();
+        //请求成功后做啥
+        request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) { //固定写法
+                //数据获取成功，获取服务器响应的数据 
+                list = JSON.parse(request.responseText)['wifi_infos'];
+                for (let i = 0; i < list.length; i++) {
+                    if (list[i].rssi >= -50) {
+                        list[i].rssi = 3
+                    } else if (list[i].rssi >= -79) {
+                        list[i].rssi = 2
+                    } else {
+                        list[i].rssi = 1
+                    }
+                    var option = document.createElement("option");
+                    option.innerHTML = list[i].ssid;
+                    select_ssid.appendChild(option);
+                }
+                // console.log(list);
+                // listDiv.innerHTML = html;
+            }
+        }
+    }
+    function wifi_data() {
+        if (document.getElementById('sta_passwd').value.length >= 8 || document.getElementById('sta_passwd').value.length == 0) {
+            let input_ssid = document.getElementById('sta_ssid').value;
+            let input_passwd = document.getElementById('sta_passwd').value;
+            let checkbox_flag = document.getElementById('wifi_switch_check').checked;
+            let checkbox_value = 0;
+            if (checkbox_flag == true) {
+                checkbox_value = 1;
+            }
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/wifi_data", true);
+            var data = {
+                "wifi_name": input_ssid,
+                "wifi_code": input_passwd,
+                "checkbox_value": checkbox_value,
+            }
+            console.log(data);
+            xhttp.send(JSON.stringify(data));
+            alert("提交成功");
+        }
+        else {
+            alert('wifi密码错误')
+        }
+    }
+    function wifi_ssid_select(text) {
+        let input_ssid = document.getElementById('sta_ssid');
+        input_ssid.value = text;
+    }
+    function input_change(id) {
+        let value = document.getElementById(id + "-value").value;
+        document.getElementById(id).value = value;
+    }
+    function mqtt_data() {
+        let input_host_type = document.getElementById('mqtt_host_type');
+        let input_host = document.getElementById('mqtt_host').value;
+        let mqtt_uri = input_host_type.options[input_host_type.value].text + input_host;
+        let input_port = document.getElementById('mqtt_port').value;
+        let input_user = document.getElementById('mqtt_user').value;
+        let input_passwd = document.getElementById('mqtt_passwd').value;
+
+        let xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "/mqtt_data", true);
+        var data = {
+            "mqtt_uri": mqtt_uri,
+            "mqtt_port": input_port,
+            "mqtt_user": input_user,
+            "mqtt_passwd": input_passwd,
+        }
+        // console.log(data);
+        xhttp.send(JSON.stringify(data));
+        alert("提交成功");
+    }
+    var commonUtil = {
+        /**
+         * 弹出消息框
+         * @param msg 消息内容
+         * @param type 消息框类型（参考bootstrap的alert）
+         */
+        alert: function (msg, type) {
+            if (typeof (type) == "undefined") { // 未传入type则默认为success类型的消息框
+                type = "success";
+            }
+
+            // 创建bootstrap的alert元素
+            var divElement = $("<div></div>").addClass('alert').addClass('alert-' + type).addClass('alert-dismissible');
+            divElement.css({ // 消息框的定位样式
+                "position": "absolute",
+                "bottom": "80px",
+                "height": "50px",
+                "right": "30px",
+            });
+            divElement.text(msg); // 设置消息框的内容
+            // 消息框添加可以关闭按钮
+            var closeBtn = $('   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>');
+            $(divElement).append(closeBtn);
+            // 消息框放入到页面中
+            $('body').append(divElement);
+            return divElement;
+        },
+
+        /**
+         * 短暂显示后上浮消失的消息框
+         * @param msg 消息内容
+         * @param type 消息框类型
+         */
+        message: function (msg, type) {
+            var divElement = commonUtil.alert(msg, type); // 生成Alert消息框
+            var isIn = false; // 鼠标是否在消息框中
+
+            divElement.on({ // 在setTimeout执行之前先判定鼠标是否在消息框中
+                mouseover: function () { isIn = true; },
+                mouseout: function () { isIn = false; }
+            });
+
+            // 短暂延时后上浮消失
+            setTimeout(function () {
+                var IntervalMS = 20; // 每次上浮的间隔毫秒
+                var floatSpace = 60; // 上浮的空间(px)
+
+                divElement.fadeOut(IntervalMS * floatSpace); // 设置元素淡出
+            }, 1500);
+        }
+    }
+    function stream() {
+        let request = new XMLHttpRequest()
+        request.open('GET', '/stream')
+        //返回格式，json是js对象的存储
+        //request.responseType = 'json'
+        request.send();
+        //请求成功后做啥
+        request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) { //固定写法
+                //数据获取成功，获取服务器响应的数据 
+                list = JSON.parse(request.responseText);
+                // for (let i = 0; i < list.length; i++) {
+                //     if (list[i].rssi >= -50) {
+                //         list[i].rssi = 3
+                //     } else if (list[i].rssi >= -79) {
+                //         list[i].rssi = 2
+                //     } else {
+                //         list[i].rssi = 1
+                //     }
+                //     var option = document.createElement("option");
+                //     option.innerHTML = list[i].ssid;
+                //     select_ssid.appendChild(option);
+                // }
+                console.log(list);
+                // listDiv.innerHTML = html;
+            }
+        }
+    }
+</script>

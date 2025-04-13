@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>ESP_Sparkbot</title>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <link href="/bootstrap.min.css" rel="stylesheet">
+    <script src="/bootstrap.bundle.min.js"></script>
+    <script src="/jquery.min.js"></script>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script> -->
+    <style>
+        .turnOnFont {
+            font-weight: bolder;
+            color: #F00;
+        }
+
+        .turnOffFont {
+            font-weight: bolder;
+            color: gray;
+        }
+
+        .symbolFont {
+            font-size: 2em;
+            font-weight: lighter;
+        }
+
+        .iconFont {
+            color: #df4848;
+        }
+
+        @media screen and (min-width: 992px) {
+
+            /*PC端*/
+            #historyChartDiv {
+                width: 100%;
+                height: 35em;
+            }
+        }
+
+        @media screen and (min-width: 300px) and (max-width: 767px) {
+
+            /*手机端*/
+            #historyChartDiv {
+                width: 100%;
+                height: 20em;
+            }
+
+            #pills-tab {
+                font-size: 0.75em;
+            }
+
+            #deviceInfo {
+                font-size: 0.9em;
+            }
+
+            #config {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container my-3">
+        <!-- 导航栏 -->
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist" style="background-color: #e3f2fd;">
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link active" id="home-tab" data-bs-toggle="pill" href="#home" role="tab"
+                    aria-controls="home" aria-selected="true">ESP_Sparkbot</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="config-tab" data-bs-toggle="pill" href="#config" role="tab"
+                    aria-controls="config" aria-selected="false">设置</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="aiapi-tab" data-bs-toggle="pill" href="#aiapi" role="tab"
+                    aria-controls="aiapi" aria-selected="false">AI模型设置</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="text-nowrap nav-link" id="about-tab" data-bs-toggle="pill" href="#about" role="tab"
+                    aria-controls="about" aria-selected="false">关于</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <div class="col ">
+                    <div class="shadow">
+                        <div class="col-3 mx-auto">
+                            <button id="btn_stream" type="button" class="btn btn-warning btn-sm container"
+                                onclick="stream()" value="打开摄像头">打开摄像头</button>
+
+                        </div>
+
+                        <div class=" bd-placeholder-img rounded container d-block p-3 bg-primary-subtle border border-secondary-subtle rounded-3  "
+                            style="height: 240px ;width: 240px;">
+                            <img id="img_stream" src="" width="100%" height="100%" alt="loading camera...">
+                        </div>
+                        <div id="rocker-container" class="container">
+                            <div class=" mx-auto d-block " style="height: 240px ;width: 240px;">
+                                <canvas id="coordiv" width="240px" height="240px">您的浏览器不支持canvas</canvas>
+
+                            </div>
+                            <div id="point-loc" class="text-center" style="color: #000000;"></div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="tab-pane fade" id="config" role="tabpanel" aria-labelledby="config-tab">
+                <div class="row ms-3">
+                    <div class="shadow p-4 m-3 col-xs-12 col-sm-5 ">
+                        <h2 class="fw-lighter">网络配置</h2>
+                        <hr>
+                        <div>
+                            <div class="row mb-2">
+                                <label for="scan_ssid" class="col-12 col-form-label fw-bold">扫描热点</label>
+                                <div class="col-8 ">
+                                    <select id="scan_ssid"
+                                        onchange="wifi_ssid_select(this.options[this.selectedIndex].text)">
+                                        <!-- SSID options will be added dynamically from JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-warning w-100"
+                                        onclick="wifi_scan()">扫描</button>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="sta_ssid" class="col-12 col-form-label fw-bold">连接热点_名称</label>
+                                <div class="col-8 ">
+                                    <input type="text" class="form-control col-8" id="sta_ssid">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="sta_passwd" class="col-12 col-form-label fw-bold">连接热点_密码</label>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="sta_passwd" placeholder="修改密码">
+                                </div>
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-warning w-100"
+                                        onclick="wifi_data()">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch" style="display: true;">
+                            <input class="form-check-input" type="checkbox" role="switch" id="wifi_switch_check">
+                            <label class="form-check-label" for="wifi_switch_check">是否开机自动连接WIFI</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="aiapi" role="tabpanel" aria-labelledby="aiapi-tab">
+                <div class="shadow p-4 mb-3">
+                    <div class="shadow p-4 m-3 col-xs-12 col-sm-5 ">
+                        <h2 class="fw-lighter">大模型API KEY</h2>
+                        <hr>
+                        <div>
+                            <div class="row mb-2">
+                                <label for="llm_url" class="col-12 col-form-label fw-bold">API接口</label>
+                                <div class="col-8 ">
+                                    <input type="text" class="form-control col-8" id="llm_url"
+                                        placeholder="例：https://ark.cn-beijing.volces.com/api/v3/chat/completions">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="llm_api_key" class="col-12 col-form-label fw-bold">API KEY</label>
+                                <div class="col-8 ">
+                                    <input type="text" class="form-control col-8" id="llm_api_key">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <label for="llm_modle" class="col-12 col-form-label fw-bold">模型名称</label>
+                                <div class="col-8">
+                                    <input type="text" class="form-control" id="llm_modle"
+                                        placeholder="例：Pro/deepseek-ai/DeepSeek-V3">
+                                </div>
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-warning w-100"
+                                        onclick="llm_api_data()">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="about" role="tabpanel" aria-labelledby="about-tab">
+                <div class="shadow p-4 mb-3">
+                    <h2>注意 Attention</h2>
+                    <p class="fw-lighter">
+                        运行过程中遇到的bug请及时反馈给我们，我们会及时修复。<br>或者您也可以在加入交流QQ群，群号在gitee链接中的README末尾</p>
+                    <h2>项目地址:</h2>
+                    <p class="fw-lighter"><a href="https://gitee.com/coll45/sparkbot-45coll"
+                            target="_blank">https://gitee.com/coll45/sparkbot-45coll</a></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function uploadbin() {
+        let progress = document.getElementById('prg');
+        var fd = new FormData();
+        fd.append("update", document.getElementById("update").files[0]);
+        document.getElementById("form1").disabled = true;
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", function (e) {
+            let percentage = e.loaded / e.total * 100
+            progress.style.width = `${percentage}%`
+            progress.innerHTML = "progress: " + `${percentage.toFixed(2)}%`
+        })
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log(xhr.responseText);
+                alert("即将重启,请耐心等待...");
+            }
+        }
+        xhr.open("POST", "/update");
+        xhr.send(fd);
+    }
+    function onchangeFile(params) {
+        var image = "image-" + params;
+        let preview = document.getElementById(image);
+        let fileInput = document.getElementById(params);
+        let progress = document.getElementById('prg_main');
+        progress.style.width = `0%`
+        progress.innerHTML = "progress: " + `0%`
+        // 清除背景图片:
+        preview.style.backgroundImage = '';
+        if (!fileInput.value) {
+            return;
+        }
+        let file = fileInput.files[0];
+        let size = file.size;
+        if (size >= 200 * 1024) {
+            alert('文件大小超出限制,最大不能超过200KB\nFile size must be less than 200KB!');
+            return false;
+        }
+        // 获取File信息:
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('不是有效的图片文件!');
+            return;
+        }
+        // 读取文件:
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            let data = e.target.result;
+            console.log(preview, 'a标签')
+            preview.src = data
+        };
+        // 以DataURL的形式读取文件:
+        reader.readAsDataURL(file);
+    }
+    function uploadFile(params) {
+        // var fd = new FormData();
+        let progress = document.getElementById('prg_main');
+        var upload_path = "/upload/" + params;
+        var file = document.getElementById(params).files[0];
+        if (file == null) {
+            alert('请选择图片文件!');
+            return false;
+        }
+        // var fileInput = document.getElementById(params).files;
+
+        // 获取File信息:
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('不是有效的图片文件!');
+            return false;
+        }
+        if (['image/jpeg'].includes(file.type)) {
+            // fd.append(params, file);
+            upload_path = upload_path + ".jpg";
+        }
+        else {
+            // fd.append(params, file);
+            upload_path = upload_path + ".png";
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", function (e) {
+            let percentage = e.loaded / e.total * 100
+            progress.style.width = `${percentage}%`
+            progress.innerHTML = "progress: " + `${percentage.toFixed(2)}%`
+            if (percentage > 99) {
+                commonUtil.message("成功");
+            }
+        })
+        xhr.open("POST", upload_path, true);
+        xhr.send(file);
+        return true;
+    }
+    function deletefile(params) {
+        var xhr = new XMLHttpRequest();
+        var delete_path = "/delete/" + params;
+        xhr.open("POST", delete_path);
+        xhr.send();
+        commonUtil.message("成功");
+    }
+    function range_change(params) {
+        let value = document.getElementById(params).value;
+        let value_span = document.getElementById(params + "-value");
+        value_span.value = value;
+    }
+    function image_tab(num, id) {
+        let str = '<div class="col p-3 text-center ">' +
+            '<div class="row"><h5 class="col-auto">模式：</h5>';
+        if (num == 1)
+            str += '<h5 class="col-auto bg-primary border border-secondary-subtle rounded-3">Surface Dial</h5>';
+        if (num == 2)
+            str += '<h5 class="col-auto bg-info border border-secondary-subtle rounded-3">鼠标</h5>';
+        if (num == 3)
+            str += '<h5 class="col-auto bg-warning border border-secondary-subtle rounded-3">键盘</h5>';
+        if (num == 4)
+            str += '<h5 class="col-auto bg-secondary border border-secondary-subtle rounded-3">多媒体功能</h5>';
+        if (num == 5)
+            str += '<h5 class="col-auto bg-primary border border-secondary-subtle rounded-3">MQTT</h5>';
+
+        str += '<h6 class="col-auto">' + id + '</h6></div>' +
+            '<div class="p-3 bg-primary-subtle border border-secondary-subtle rounded-3 text-center">' +
+            '<img id="image-i' + id + '" src="" height="48" alt="推荐48*48px">' +
+            '</div>' +
+            '<input type="file" class="btn btn-link w-100" accept="image/png,image/jpeg" name="i' + id + '" id="i' + id + '" onchange="onchangeFile(\'i' + id + '\')">' +
+            '<div class="row justify-content-md-center"><input class="col  text-center" id="name-' + id + '" type="text" class="form-control" placeholder="图标名称 ">';
+        if (num != 5)
+            str += '<input class="col text-center" id="info-' + id + '" type="text" class="form-control" placeholder="Info ">';
+        str += '</div>';
+        if (num == 5)
+            str += '<div class="row justify-content-md-center"><input class="col  text-center" id="topic-' + id + '" type="text" class="form-control" placeholder="Topic "></div>'
+        str += '</div>';
+        return str;
+    }
+    function wifi_scan() {
+        let select_ssid = document.getElementById('scan_ssid')
+        let list = ''
+        let html = ''
+        let request = new XMLHttpRequest()
+        request.open('GET', '/wifi_scan')
+        //返回格式，json是js对象的存储
+        //request.responseType = 'json'
+        request.send();
+        //请求成功后做啥
+        request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) { //固定写法
+                //数据获取成功，获取服务器响应的数据 
+                list = JSON.parse(request.responseText)['wifi_infos'];
+                for (let i = 0; i < list.length; i++) {
+                    if (list[i].rssi >= -50) {
+                        list[i].rssi = 3
+                    } else if (list[i].rssi >= -79) {
+                        list[i].rssi = 2
+                    } else {
+                        list[i].rssi = 1
+                    }
+                    var option = document.createElement("option");
+                    option.innerHTML = list[i].ssid;
+                    select_ssid.appendChild(option);
+                }
+                var sta_ssid = document.getElementById("sta_ssid");
+                sta_ssid.value = list[0].ssid;
+                // console.log(list);
+                // listDiv.innerHTML = html;
+            }
+        }
+    }
+    function baidu_api_data() {
+        let baidu_api_key = document.getElementById('baidu_api_key').value;
+        let baidu_secret_key = document.getElementById('baidu_secret_key').value;
+        if (baidu_api_key.length > 0 && baidu_secret_key.length > 0) {
+            let baidu_tts_speed = document.getElementById('baidu_tts_speed').value;
+            let baidu_tts_pit = document.getElementById('baidu_tts_pit').value;
+            let baidu_tts_vol = document.getElementById('baidu_tts_vol').value;
+            let baidu_tts_per = document.getElementById('baidu_tts_per').value;
+
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/baidu_api_data", true);
+            var data = {
+                "baidu_api_key": baidu_api_key,
+                "baidu_secret_key": baidu_secret_key,
+                "baidu_tts_speed": baidu_tts_speed,
+                "baidu_tts_pit": baidu_tts_pit,
+                "baidu_tts_vol": baidu_tts_vol,
+                "baidu_tts_per": baidu_tts_per,
+            }
+            console.log(data);
+            xhttp.send(JSON.stringify(data));
+            alert("提交成功");
+        }
+        else {
+            alert('apikey和secretkey不能为空');
+        }
+    }
+    function llm_api_data() {
+        let llm_url = document.getElementById('llm_url').value;
+        let llm_api_key = document.getElementById('llm_api_key').value;
+        let llm_modle = document.getElementById('llm_modle').value;
+        if (llm_url.length > 0 && llm_api_key.length > 0 && llm_modle.length > 0) {
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/llm_api_data", true);
+            var data = {
+                "llm_url": llm_url,
+                "llm_api_key": llm_api_key,
+                "llm_modle": llm_modle,
+            }
+            console.log(data);
+            xhttp.send(JSON.stringify(data));
+            alert("提交成功");
+        }
+        else {
+            alert('不能为空');
+        }
+    }
+    function asr_weather_data() {
+        let qweather_api_key = document.getElementById('qweather_api_key').value;
+        let asr_api_key = document.getElementById('asr_api_key').value;
+        let xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "/asr_weather_data", true);
+        var data = {
+            "qweather_api_key": qweather_api_key,
+            "asr_api_key": asr_api_key,
+        }
+        console.log(data);
+        xhttp.send(JSON.stringify(data));
+        alert("提交成功");
+    }
+    function wifi_data() {
+        if (document.getElementById('sta_passwd').value.length >= 8 || document.getElementById('sta_passwd').value.length == 0) {
+            let input_ssid = document.getElementById('sta_ssid').value;
+            let input_passwd = document.getElementById('sta_passwd').value;
+            let checkbox_flag = document.getElementById('wifi_switch_check').checked;
+            let checkbox_value = 0;
+            if (checkbox_flag == true) {
+                checkbox_value = 1;
+            }
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/wifi_data", true);
+            var data = {
+                "wifi_name": input_ssid,
+                "wifi_code": input_passwd,
+                "checkbox_value": checkbox_value,
+            }
+            console.log(data);
+            xhttp.send(JSON.stringify(data));
+            alert("提交成功,重启后生效");
+        }
+        else {
+            alert('wifi密码错误')
+        }
+    }
+    function wifi_ssid_select(text) {
+        let input_ssid = document.getElementById('sta_ssid');
+        input_ssid.value = text;
+    }
+    var commonUtil = {
+        /**
+         * 弹出消息框
+         * @param msg 消息内容
+         * @param type 消息框类型（参考bootstrap的alert）
+         */
+        alert: function (msg, type) {
+            if (typeof (type) == "undefined") { // 未传入type则默认为success类型的消息框
+                type = "success";
+            }
+
+            // 创建bootstrap的alert元素
+            var divElement = $("<div></div>").addClass('alert').addClass('alert-' + type).addClass('alert-dismissible');
+            divElement.css({ // 消息框的定位样式
+                "position": "absolute",
+                "bottom": "80px",
+                "height": "50px",
+                "right": "30px",
+            });
+            divElement.text(msg); // 设置消息框的内容
+            // 消息框添加可以关闭按钮
+            var closeBtn = $('   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>');
+            $(divElement).append(closeBtn);
+            // 消息框放入到页面中
+            $('body').append(divElement);
+            return divElement;
+        },
+
+        /**
+         * 短暂显示后上浮消失的消息框
+         * @param msg 消息内容
+         * @param type 消息框类型
+         */
+        message: function (msg, type) {
+            var divElement = commonUtil.alert(msg, type); // 生成Alert消息框
+            var isIn = false; // 鼠标是否在消息框中
+
+            divElement.on({ // 在setTimeout执行之前先判定鼠标是否在消息框中
+                mouseover: function () { isIn = true; },
+                mouseout: function () { isIn = false; }
+            });
+
+            // 短暂延时后上浮消失
+            setTimeout(function () {
+                var IntervalMS = 20; // 每次上浮的间隔毫秒
+                var floatSpace = 60; // 上浮的空间(px)
+
+                divElement.fadeOut(IntervalMS * floatSpace); // 设置元素淡出
+            }, 1500);
+        }
+    }
+    function stream() {
+        var button = document.getElementById('btn_stream')
+
+        if (button.innerHTML == '打开摄像头') {
+            var baseHost = document.location.origin;
+            var url = `${baseHost}/stream`
+            var view = document.getElementById('img_stream')
+            view.src = url;
+            button.innerHTML = '关闭摄像头'
+        }
+        else {
+            var view = document.getElementById('img_stream')
+            view.src = "";
+            button.innerHTML = '打开摄像头'
+        }
+
+    }
+    const rockercontainer = document.getElementById('rocker-container')	//摇杆容器
+    var coordiv = document.getElementById('coordiv');	//摇杆画布
+    //画布尺寸（需要与body内设置相同） 和 摇杆中心坐标（画布尺寸/2）
+    var coordiv_w = coordiv.width;
+    var coordiv_h = coordiv.height;
+    var center_x = coordiv_w / 2;
+    var center_y = coordiv_h / 2;
+
+    //摇杆初始化 显示中心坐标和手柄
+    var loc = "当前位置 x:" + parseInt(center_x / (center_x / 5)) + ",y:" + parseInt(center_y / (center_y / 5));
+    document.getElementById("point-loc").innerHTML = loc;
+    var ctx = coordiv.getContext("2d");	//画布初始化
+
+    //禁止手机双指缩放		原代码直接复制粘贴
+    var lastTouchEnd = 0;
+    document.documentElement.addEventListener('touchend', function (event) {
+        var now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+    //禁止手机双击缩放		原代码直接复制粘贴
+    document.documentElement.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) {
+            event.preventDefault();
+        }
+    }, false);
+
+    var NowX = center_x
+    var NowY = center_y
+    var touch_flag = false
+    //移动端浏览器 手指点击相关事件
+    coordiv.ontouchstart = function (e) {//手指头触摸屏幕上的事件
+        event.preventDefault()
+        var touch = e.touches[0] //获取第一个触点
+        var x = this.offsetLeft		//e为当前事件 this为当前元素
+        var y = this.offsetTop		//获取当前元素距离页面边界的距离
+        NowX = parseInt((touch.pageX - x))	//获取全局点击坐标 计算画布内点击坐标
+        NowY = parseInt((touch.pageY - y))
+        touch_flag = true
+        document.ontouchmove = function (e) {//手指头在屏幕上滑动触发的事件
+            touch = e.touches[0]; //获取第一个触点
+            NowX = parseInt((touch.pageX - x))  //计算画布内点击坐标
+            NowY = parseInt((touch.pageY - y))
+        }
+        document.ontouchend = function () {//当手指从屏幕上离开的时候触发
+            //清除事件
+            touch_flag = false
+            NowX = center_x
+            NowY = center_y
+            new_coordinate()
+
+            document.ontouchstart = null //清空点击事件
+            document.ontouchmove = null
+        }
+    }
+
+    //PC端浏览器 鼠标点击相关事件
+    coordiv.onmousedown = function (e) {//鼠标按下触发事件
+        var x = this.offsetLeft
+        var y = this.offsetTop
+        NowX = (e.clientX - x)
+        NowY = (e.clientY - y)
+        touch_flag = true
+        document.onmousemove = function (e) {//鼠标按下时持续触发事件
+            NowX = (e.clientX - x)
+            NowY = (e.clientY - y)
+        }
+        document.onmouseup = function () {//鼠标抬起触发事件
+            //清除事件
+            touch_flag = false
+            NowX = center_x
+            NowY = center_y
+            new_coordinate()
+
+            document.onmouseup = null
+            document.onmousemove = null
+        }
+    }
+    var LastX = parseInt(center_x / (center_x / 100))
+    var LastY = parseInt(center_y / (center_y / 100))
+    var canvas_radius = coordiv_w / 3
+    var last_time = Date.now()
+    //绘制摇杆圆形手柄 并显示当前坐标
+    var int = self.setInterval("coor_timer()", 10);
+    function coor_timer() {
+        if (touch_flag)
+            new_coordinate()
+        // console.log(NowX, NowY)
+    }
+    function new_coordinate() {
+
+        var zero_x, zero_y
+        var position_x = NowX
+        var position_y = NowY
+        zero_x = NowX - center_x
+        zero_y = center_y - NowY
+        //限制坐标
+        if (zero_x * zero_x + zero_y * zero_y > canvas_radius * canvas_radius) {
+            var radians = Math.atan2(zero_y, zero_x)
+            position_x = Math.cos(radians) * canvas_radius + center_x
+            position_y = center_y - Math.sin(radians) * canvas_radius
+        }
+        ctx.clearRect(0, 0, coordiv_w, coordiv_h)	//清空画布
+        ctx.save()	//保存转态
+
+        ctx.beginPath() //开启路径
+        ctx.shadowBlur = 0 //阴影宽度
+        ctx.shadowColor = "#425262"	//阴影颜色
+        ctx.strokeStyle = "#425262";  //设置边线的颜色
+        ctx.arc(center_x, center_y, canvas_radius, 0, 2 * Math.PI) //画圆
+        ctx.fillStyle = "#425262" //填充颜色
+        ctx.fill()	//填充路径
+        ctx.stroke()	//绘制路径
+        ctx.closePath() // 关闭路径
+
+        ctx.beginPath() //开启路径
+        ctx.shadowBlur = 10 //阴影宽度
+        ctx.shadowColor = "#556472"	//阴影颜色
+        ctx.strokeStyle = "#556472";  //设置边线的颜色
+        ctx.arc(position_x, position_y, center_x / 3.5, 0, 2 * Math.PI) //画圆
+        ctx.fillStyle = "#556472" //填充颜色
+        ctx.fill()	//填充路径
+        ctx.stroke()	//绘制路径
+        ctx.closePath() // 关闭路径
+        ctx.restore()	//为画布重置为最近保存的图像状态
+        v_x = parseInt((position_x - center_x) / canvas_radius * 100)
+        v_y = parseInt((center_y - position_y) / canvas_radius * 100)
+        // console.log(NowX, NowY)
+        // if (NowX != LastX || NowY != LastY)   //减小发送频率
+        // {
+        //显示坐标
+        var loc = "当前速度 x:" + v_x + ",y:" + v_y
+        document.getElementById("point-loc").innerHTML = loc
+
+        var now_time = Date.now()
+        // console.log(now_time)
+        if (now_time - last_time > 100) {
+            last_time = now_time
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/rocker_data", true);
+            var data = {
+                "x": v_x,
+                "y": v_y,
+            }
+            // console.log(data);
+            xhttp.send(JSON.stringify(data));
+        }
+    }
+    /**
+    * 功能：将数字按规定位数输出，不足的位补零。例如 PrefixZero(3,2) = 03
+    * @param num： 被操作数
+    * @param n： 固定的总位数
+    */
+
+
+    function PrefixZero(num, n) {
+        return (Array(n).join(0) + num).slice(-n);
+    }
+
+    //禁用右键菜单
+    window.addEventListener('contextmenu', function (e) {
+        e.preventDefault()
+    })
+    new_coordinate();	//中心位置绘制圆形手柄 并显示坐标
+
+    //遥控杆代码来源https://blog.csdn.net/l851285812/article/details/106478296
+</script>
