@@ -1,21 +1,57 @@
-SET(SOURCES screens/ui_home.c
-    screens/ui_muyuplay.c
-    screens/ui_dice.c
-    screens/ui_title.c
-    screens/ui_fish.c
-    screens/ui_game.c
-    ui.c
-    ui_helpers.c
-    ui_events.c
-    images/ui_img_clody_png.c
-    images/ui_img_wifi_png.c
-    images/ui_img_battery_png.c
-    images/ui_img_muyu_png.c
-    images/ui_img_wifi_disconnection_png.c
-    fonts/ui_font_ComfortaaBold75.c
-    fonts/ui_font_ComfortaaLight70.c
-    fonts/ui_font_OPPOSansH18.c
-    fonts/ui_font_OPPOSansH25.c
-    fonts/ui_font_OPPOSansL70.c)
 
-add_library(ui ${SOURCES})
+idf_component_register(
+    SRC_DIRS 
+        "." 
+        "./ui"
+        "./ui/screens"
+        "./ui/fonts"
+        "./ui/images"
+        "./app"
+        "./tinyGL_cube"
+        "./lottie_player"
+        "./game_2048"
+        "./wifi"
+    INCLUDE_DIRS 
+        "." 
+        "./ui" 
+        "./app"
+        "./tinyGL_cube"
+        "./lottie_player"
+        "./game_2048"
+        "./wifi"
+    EMBED_FILES ./wifi/root.html ./wifi/index.html 
+    )
+target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format" "-Wno-unused-variable")
+
+idf_component_get_property(lib espressif2022__tinygl COMPONENT_LIB)
+target_compile_options(${lib} PRIVATE -Wno-implicit-fallthrough -Wno-unused-variable -Wno-unused-function)
+
+# Determine whether esp-sr is fetched from component registry or from local path
+idf_build_get_property(build_components BUILD_COMPONENTS)
+if(esp-sr IN_LIST build_components)
+    set(esp-sr_name esp-sr) # Local component
+else()
+    set(esp-sr_name espressif__esp-sr) # Managed component
+endif()
+
+spiffs_create_partition_assets(
+    animation
+    "../lottie_assets"
+    FLASH_IN_PROJECT
+    MMAP_FILE_SUPPORT_FORMAT ".bmp,.json"
+)
+
+spiffs_create_partition_assets(
+    storage
+    "../audio"
+    FLASH_IN_PROJECT
+    MMAP_FILE_SUPPORT_FORMAT ".wav"
+)
+
+spiffs_create_partition_assets(
+    weather
+    "../weather"
+    FLASH_IN_PROJECT
+    MMAP_FILE_SUPPORT_FORMAT ".jpg,.png"
+    MMAP_SUPPORT_QOI
+)
